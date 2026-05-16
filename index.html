@@ -6,9 +6,7 @@
   <title>Gerador de Tweet</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -83,17 +81,9 @@
     }
 
     @media (max-width: 480px) {
-      body {
-        padding-top: 18px;
-      }
-
       h1 {
         font-size: 30px;
         margin-top: 22px;
-      }
-
-      p {
-        font-size: 16px;
       }
 
       button {
@@ -112,7 +102,7 @@
   <div class="container">
     <h1>Gerador de Tweet</h1>
 
-    <p>Envie um ou vários prints do tweet:</p>
+    <p>Envie um ou vários prints de tweets:</p>
 
     <input type="file" id="tweetInput" accept="image/*" multiple>
 
@@ -171,7 +161,7 @@
       imagensGeradas = [];
 
       if (!files.length) {
-        alert("Envie pelo menos um print do tweet.");
+        alert("Envie pelo menos um print de tweet.");
         return;
       }
 
@@ -193,14 +183,20 @@
         const tweetHeight = tweet.height * scale;
 
         const x = (W - tweetWidth) / 2;
-        const y = 340;
+        const y = (H - tweetHeight) / 2;
 
         ctx.save();
-        ctx.shadowColor = "rgba(25,25,25,0.28)";
-        ctx.shadowBlur = 80;
+        ctx.shadowColor = "rgba(0,0,0,0.35)";
+        ctx.shadowBlur = 85;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 22;
+        ctx.shadowOffsetY = 28;
 
+        ctx.fillStyle = "white";
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 42);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, 42);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
