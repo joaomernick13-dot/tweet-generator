@@ -1,27 +1,70 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Gerador de Tweet</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
       background: #111;
       color: white;
       text-align: center;
-      padding: 30px;
+      padding: 24px 16px 60px;
     }
 
-    input, button {
-      margin: 10px;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-weight: bold;
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 32px 0 14px;
+    }
+
+    p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      max-width: 360px;
+      background: white;
+      color: #111;
+      padding: 14px;
+      border-radius: 14px;
+      margin: 14px 0;
+      font-size: 15px;
     }
 
     button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      margin: 8px 5px;
+      font-size: 15px;
+      font-weight: bold;
       cursor: pointer;
+      background: white;
+      color: #0077ff;
+    }
+
+    .dica {
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: 0.75;
+      margin: 20px auto;
+      max-width: 340px;
     }
 
     #resultados {
@@ -33,33 +76,57 @@
     }
 
     .resultado {
-      max-width: 360px;
-      width: 90%;
-      border-radius: 18px;
+      width: 100%;
+      max-width: 390px;
+      border-radius: 22px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.45);
     }
 
-    .dica {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-top: 15px;
+    @media (max-width: 480px) {
+      body {
+        padding-top: 18px;
+      }
+
+      h1 {
+        font-size: 30px;
+        margin-top: 22px;
+      }
+
+      p {
+        font-size: 16px;
+      }
+
+      button {
+        width: 46%;
+        min-width: 140px;
+      }
+
+      .resultado {
+        max-width: 94vw;
+      }
     }
   </style>
 </head>
+
 <body>
+  <div class="container">
+    <h1>Gerador de Tweet</h1>
 
-  <h1>Gerador de Tweet</h1>
+    <p>Envie um ou vários prints do tweet:</p>
 
-  <p>Envie um ou vários prints do tweet:</p>
-  <input type="file" id="tweetInput" accept="image/*" multiple>
+    <input type="file" id="tweetInput" accept="image/*" multiple>
 
-  <br>
-  <button onclick="generate()">Gerar imagens</button>
-  <button onclick="downloadAll()">Baixar todas</button>
+    <br>
 
-  <p class="dica">No iPhone: toque e segure em uma imagem gerada para salvar no rolo da câmera.</p>
+    <button onclick="generate()">Gerar imagens</button>
+    <button onclick="downloadAll()">Baixar todas</button>
 
-  <div id="resultados"></div>
+    <p class="dica">
+      No iPhone: toque e segure em uma imagem gerada para salvar no rolo da câmera.
+    </p>
+
+    <div id="resultados"></div>
+  </div>
 
   <script>
     const W = 1080;
@@ -121,20 +188,20 @@
 
         ctx.drawImage(bg, 0, 0, W, H);
 
-        const tweetWidth = 760;
+        const tweetWidth = 850;
         const scale = tweetWidth / tweet.width;
         const tweetHeight = tweet.height * scale;
 
         const x = (W - tweetWidth) / 2;
-        const y = (H - tweetHeight) / 2;
+        const y = 340;
 
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.55)";
-        ctx.shadowBlur = 70;
+        ctx.shadowColor = "rgba(25,25,25,0.28)";
+        ctx.shadowBlur = 80;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 35;
+        ctx.shadowOffsetY = 22;
 
-        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 28);
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 42);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
         ctx.restore();
@@ -164,6 +231,5 @@
       });
     }
   </script>
-
 </body>
 </html>
