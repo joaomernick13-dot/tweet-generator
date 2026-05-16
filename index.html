@@ -34,10 +34,8 @@
 </head>
 <body>
 
-  <h1>Gerador de Tweet Fofoca</h1>
+  <h1>Gerador de Tweet </h1>
 
-  <p>Envie o fundo rosa/roxo:</p>
-  <input type="file" id="bgInput" accept="image/*">
 
   <p>Envie o print do tweet:</p>
   <input type="file" id="tweetInput" accept="image/*">
@@ -50,83 +48,84 @@
   <canvas id="canvas" width="1080" height="1350"></canvas>
 
   <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let finalImage = null;
 
-    let finalImage = null;
+function loadImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.src = src;
+  });
+}
 
-    function loadImage(file) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.src = URL.createObjectURL(file);
-      });
-    }
+function loadFile(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.src = URL.createObjectURL(file);
+  });
+}
 
-    async function generate() {
-      const bgFile = document.getElementById("bgInput").files[0];
-      const tweetFile = document.getElementById("tweetInput").files[0];
+async function generate() {
+  const tweetFile = document.getElementById("tweetInput").files[0];
 
-      if (!bgFile || !tweetFile) {
-        alert("Envie o fundo e o print do tweet.");
-        return;
-      }
+  if (!tweetFile) {
+    alert("Envie o print do tweet.");
+    return;
+  }
 
-      const bg = await loadImage(bgFile);
-      const tweet = await loadImage(tweetFile);
+  const bg = await loadImage("fundo.jpg");
+  const tweet = await loadFile(tweetFile);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
-      ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+  const tweetWidth = 960;
+  const scale = tweetWidth / tweet.width;
+  const tweetHeight = tweet.height * scale;
 
-      const tweetWidth = 960;
-      const scale = tweetWidth / tweet.width;
-      const tweetHeight = tweet.height * scale;
+  const x = (canvas.width - tweetWidth) / 2;
+  const y = (canvas.height - tweetHeight) / 2;
 
-      const x = (canvas.width - tweetWidth) / 2;
-      const y = (canvas.height - tweetHeight) / 2;
+  ctx.shadowColor = "rgba(0,0,0,0.25)";
+  ctx.shadowBlur = 35;
+  ctx.shadowOffsetY = 18;
 
-      ctx.shadowColor = "rgba(0,0,0,0.25)";
-      ctx.shadowBlur = 35;
-      ctx.shadowOffsetY = 18;
+  roundImage(tweet, x, y, tweetWidth, tweetHeight, 28);
 
-      roundImage(tweet, x, y, tweetWidth, tweetHeight, 28);
+  ctx.shadowColor = "transparent";
+  finalImage = canvas.toDataURL("image/png");
+}
 
-      ctx.shadowColor = "transparent";
+function roundImage(img, x, y, width, height, radius) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(img, x, y, width, height);
+  ctx.restore();
+}
 
-      finalImage = canvas.toDataURL("image/png");
-    }
+function downloadImage() {
+  if (!finalImage) {
+    alert("Gere a imagem primeiro.");
+    return;
+  }
 
-    function roundImage(img, x, y, width, height, radius) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, x, y, width, height);
-      ctx.restore();
-    }
-
-    function downloadImage() {
-      if (!finalImage) {
-        alert("Gere a imagem primeiro.");
-        return;
-      }
-
-      const link = document.createElement("a");
-      link.download = "tweet-fofoca.png";
-      link.href = finalImage;
-      link.click();
-    }
-  </script>
-
-</body>
-</html>
+  const link = document.createElement("a");
+  link.download = "tweet-fofoca.png";
+  link.href = finalImage;
+  link.click();
+}
+</script>
