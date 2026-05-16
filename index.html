@@ -178,12 +178,12 @@
 
         ctx.drawImage(bg, 0, 0, W, H);
 
-        const tweetWidth = 820;
+        const tweetWidth = 920;
         const scale = tweetWidth / tweet.width;
         const tweetHeight = tweet.height * scale;
 
         const x = (W - tweetWidth) / 2;
-        const y = (H - tweetHeight) / 2 + 35;
+        const y = (H - tweetHeight) / 2 - 10;
 
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.22)";
@@ -192,12 +192,12 @@
         ctx.shadowOffsetY = 18;
 
         ctx.fillStyle = "white";
-        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 34);
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
         ctx.fill();
         ctx.restore();
 
         ctx.save();
-        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 34);
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
         ctx.restore();
