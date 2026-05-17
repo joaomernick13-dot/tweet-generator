@@ -124,17 +124,19 @@
     let imagensGeradas = [];
 
     function loadImage(src) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
+        img.onerror = reject;
         img.src = src;
       });
     }
 
     function loadFile(file) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
+        img.onerror = reject;
         img.src = URL.createObjectURL(file);
       });
     }
@@ -153,6 +155,15 @@
       ctx.closePath();
     }
 
+    function drawBackgroundCover(ctx, img) {
+      const scale = Math.max(W / img.width, H / img.height);
+      const sw = W / scale;
+      const sh = H / scale;
+      const sx = (img.width - sw) / 2;
+      const sy = (img.height - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    }
+
     async function generate() {
       const files = Array.from(document.getElementById("tweetInput").files);
       const resultados = document.getElementById("resultados");
@@ -165,7 +176,13 @@
         return;
       }
 
-      const bg = await loadImage("background.jpg?v=2");
+      let bg;
+      try {
+        bg = await loadImage("background.jpg?v=4");
+      } catch (error) {
+        alert("Não consegui carregar o fundo background.jpg.");
+        return;
+      }
 
       for (let i = 0; i < files.length; i++) {
         const tweet = await loadFile(files[i]);
@@ -176,22 +193,16 @@
 
         const ctx = canvas.getContext("2d");
 
-        ctx.drawImage(bg, 0, 0, W, H);
+        drawBackgroundCover(ctx, bg);
 
         const proporcao = tweet.height / tweet.width;
 
-        let maxWidth;
-        let maxHeight;
+        let maxWidth = 980;
+        let maxHeight = 1120;
 
-        if (proporcao > 2.2) {
-          maxWidth = 1060;
-          maxHeight = 1280;
-        } else if (proporcao > 1.5) {
-          maxWidth = 1040;
-          maxHeight = 1180;
-        } else {
-          maxWidth = 960;
-          maxHeight = 980;
+        if (proporcao > 1.7) {
+          maxWidth = 1000;
+          maxHeight = 1230;
         }
 
         const scale = Math.min(
@@ -204,6 +215,7 @@
 
         const x = (W - tweetWidth) / 2;
         const y = (H - tweetHeight) / 2;
+        const radius = Math.min(38, tweetWidth * 0.045);
 
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.12)";
@@ -212,18 +224,18 @@
         ctx.shadowOffsetY = 6;
 
         ctx.fillStyle = "white";
-        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.fill();
         ctx.restore();
 
         ctx.save();
-        roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
+        roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
 
         ctx.strokeStyle = "rgba(255,255,255,0.7)";
         ctx.lineWidth = 2;
-        roundedClip(ctx, x + 1, y + 1, tweetWidth - 2, tweetHeight - 2, 38);
+        roundedClip(ctx, x + 1, y + 1, tweetWidth - 2, tweetHeight - 2, radius);
         ctx.stroke();
 
         ctx.restore();
