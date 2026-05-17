@@ -153,21 +153,6 @@
       ctx.closePath();
     }
 
-    function addSoftGrain(ctx) {
-      const grain = ctx.createImageData(W, H);
-      const data = grain.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const value = Math.random() * 10;
-        data[i] = value;
-        data[i + 1] = value;
-        data[i + 2] = value;
-        data[i + 3] = 10;
-      }
-
-      ctx.putImageData(grain, 0, 0);
-    }
-
     async function generate() {
       const files = Array.from(document.getElementById("tweetInput").files);
       const resultados = document.getElementById("resultados");
@@ -243,8 +228,6 @@
         ctx.stroke();
 
         ctx.restore();
-
-        addSoftGrain(ctx);
 
         const dataUrl = canvas.toDataURL("image/png");
         imagensGeradas.push(dataUrl);
