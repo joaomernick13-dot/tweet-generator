@@ -73,6 +73,14 @@
       accent-color: #0077ff;
     }
 
+    .option-help {
+      font-size: 12px;
+      line-height: 1.35;
+      opacity: 0.65;
+      margin: 4px auto 6px;
+      max-width: 330px;
+    }
+
     .dica {
       font-size: 14px;
       line-height: 1.4;
@@ -124,8 +132,12 @@
 
     <label class="option">
       <input type="checkbox" id="hideTopRight" checked>
-      Apagar X.com / botão seguir do canto
+      Remover x.com
     </label>
+
+    <p class="option-help">
+      Oculta o canto superior direito do tweet. Desative se algo importante aparecer ali.
+    </p>
 
     <br>
 
@@ -186,14 +198,23 @@
     }
 
     function hideTweetTopRight(ctx, x, y, width, height) {
-      const patchW = width * 0.32;
-      const patchH = Math.min(height * 0.18, width * 0.18);
-      const patchX = x + width - patchW - width * 0.025;
-      const patchY = y + height * 0.025;
+      const patchW = width * 0.16;
+      const patchH = Math.min(height * 0.07, width * 0.08);
+      const patchX = x + width - patchW - 14;
+      const patchY = y + 12;
 
       ctx.save();
       ctx.fillStyle = "white";
-      ctx.fillRect(patchX, patchY, patchW, patchH);
+
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(patchX, patchY, patchW, patchH, 14);
+        ctx.fill();
+      } else {
+        roundedClip(ctx, patchX, patchY, patchW, patchH, 14);
+        ctx.fill();
+      }
+
       ctx.restore();
     }
 
