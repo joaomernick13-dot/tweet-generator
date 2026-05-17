@@ -180,13 +180,24 @@
 
         const proporcao = tweet.height / tweet.width;
 
-        const maxWidth = 960;
-        const maxHeight = proporcao > 1.7 ? 1120 : 980;
+let maxWidth;
+let maxHeight;
 
-        const scale = Math.min(
-          maxWidth / tweet.width,
-          maxHeight / tweet.height
-        );
+if (proporcao > 2.2) {
+  maxWidth = 1020;
+  maxHeight = 1180;
+} else if (proporcao > 1.5) {
+  maxWidth = 990;
+  maxHeight = 1080;
+} else {
+  maxWidth = 930;
+  maxHeight = 980;
+}
+
+const scale = Math.min(
+  maxWidth / tweet.width,
+  maxHeight / tweet.height
+);
 
         const tweetWidth = tweet.width * scale;
         const tweetHeight = tweet.height * scale;
