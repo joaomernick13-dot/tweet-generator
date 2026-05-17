@@ -132,11 +132,11 @@
 
     <label class="option">
       <input type="checkbox" id="hideTopRight" checked>
-      Remover x.com
+      Remover x.com automaticamente
     </label>
 
     <p class="option-help">
-      Oculta o canto superior direito do tweet. Desative se algo importante aparecer ali.
+      Tenta detectar e ocultar texto escuro no canto superior direito. Desative se algo importante aparecer ali.
     </p>
 
     <br>
@@ -197,24 +197,87 @@
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
     }
 
-    function hideTweetTopRight(ctx, x, y, width, height) {
-      const patchW = width * 0.16;
-      const patchH = Math.min(height * 0.07, width * 0.08);
-      const patchX = x + width - patchW - 14;
-      const patchY = y + 12;
+    function fillRounded(ctx, x, y, width, height, radius) {
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius);
+        ctx.fill();
+      } else {
+        roundedClip(ctx, x, y, width, height, radius);
+        ctx.fill();
+      }
+    }
+
+    function hideTweetTopRightAuto(ctx, x, y, width, height) {
+      const scanX = Math.round(x + width * 0.62);
+      const scanY = Math.round(y + Math.max(8, height * 0.018));
+      const scanW = Math.round(width * 0.35);
+      const scanH = Math.round(Math.min(height * 0.11, width * 0.12, 95));
+
+      let imageData;
+      try {
+        imageData = ctx.getImageData(scanX, scanY, scanW, scanH);
+      } catch (error) {
+        return;
+      }
+
+      const data = imageData.data;
+      let minX = scanW;
+      let minY = scanH;
+      let maxX = 0;
+      let maxY = 0;
+      let darkCount = 0;
+
+      for (let py = 0; py < scanH; py++) {
+        for (let px = 0; px < scanW; px++) {
+          const idx = (py * scanW + px) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const a = data[idx + 3];
+          const brightness = (r + g + b) / 3;
+
+          if (a > 80 && brightness < 150 && r < 180 && g < 180 && b < 180) {
+            darkCount++;
+            minX = Math.min(minX, px);
+            minY = Math.min(minY, py);
+            maxX = Math.max(maxX, px);
+            maxY = Math.max(maxY, py);
+          }
+        }
+      }
+
+      if (darkCount < 18) return;
+
+      const detectedW = maxX - minX;
+      const detectedH = maxY - minY;
+
+      if (detectedW < 8 || detectedH < 5) return;
+
+      const padX = Math.max(14, width * 0.018);
+      const padY = Math.max(8, width * 0.01);
+
+      let patchX = scanX + minX - padX;
+      let patchY = scanY + minY - padY;
+      let patchW = detectedW + padX * 2;
+      let patchH = detectedH + padY * 2;
+
+      const maxPatchW = width * 0.27;
+      const maxPatchH = Math.min(height * 0.095, width * 0.10, 78);
+
+      patchW = Math.min(patchW, maxPatchW);
+      patchH = Math.min(patchH, maxPatchH);
+
+      patchX = Math.max(x + width * 0.70, patchX);
+      patchY = Math.max(y + 4, patchY);
+
+      if (patchX + patchW > x + width - 8) {
+        patchW = x + width - 8 - patchX;
+      }
 
       ctx.save();
       ctx.fillStyle = "white";
-
-      if (typeof ctx.roundRect === "function") {
-        ctx.beginPath();
-        ctx.roundRect(patchX, patchY, patchW, patchH, 14);
-        ctx.fill();
-      } else {
-        roundedClip(ctx, patchX, patchY, patchW, patchH, 14);
-        ctx.fill();
-      }
-
+      fillRounded(ctx, patchX, patchY, patchW, patchH, 12);
       ctx.restore();
     }
 
@@ -288,7 +351,7 @@
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
 
         if (hideTopRight) {
-          hideTweetTopRight(ctx, x, y, tweetWidth, tweetHeight);
+          hideTweetTopRightAuto(ctx, x, y, tweetWidth, tweetHeight);
         }
 
         ctx.restore();
