@@ -57,6 +57,22 @@
       color: #0077ff;
     }
 
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 12px auto 4px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .option input {
+      width: 18px;
+      height: 18px;
+      accent-color: #0077ff;
+    }
+
     .dica {
       font-size: 14px;
       line-height: 1.4;
@@ -105,6 +121,11 @@
     <p>Envie um ou vários prints de tweets:</p>
 
     <input type="file" id="tweetInput" accept="image/*" multiple>
+
+    <label class="option">
+      <input type="checkbox" id="hideTopRight" checked>
+      Apagar X.com / botão seguir do canto
+    </label>
 
     <br>
 
@@ -164,9 +185,22 @@
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
     }
 
+    function hideTweetTopRight(ctx, x, y, width, height) {
+      const patchW = width * 0.32;
+      const patchH = Math.min(height * 0.18, width * 0.18);
+      const patchX = x + width - patchW - width * 0.025;
+      const patchY = y + height * 0.025;
+
+      ctx.save();
+      ctx.fillStyle = "white";
+      ctx.fillRect(patchX, patchY, patchW, patchH);
+      ctx.restore();
+    }
+
     async function generate() {
       const files = Array.from(document.getElementById("tweetInput").files);
       const resultados = document.getElementById("resultados");
+      const hideTopRight = document.getElementById("hideTopRight").checked;
 
       resultados.innerHTML = "";
       imagensGeradas = [];
@@ -231,6 +265,11 @@
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
+
+        if (hideTopRight) {
+          hideTweetTopRight(ctx, x, y, tweetWidth, tweetHeight);
+        }
+
         ctx.restore();
 
         const dataUrl = canvas.toDataURL("image/png");
