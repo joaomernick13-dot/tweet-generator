@@ -178,8 +178,10 @@
 
         ctx.drawImage(bg, 0, 0, W, H);
 
+        const proporcao = tweet.height / tweet.width;
+
         const maxWidth = 960;
-        const maxHeight = 980;
+        const maxHeight = proporcao > 1.7 ? 1120 : 980;
 
         const scale = Math.min(
           maxWidth / tweet.width,
