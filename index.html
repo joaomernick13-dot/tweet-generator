@@ -153,6 +153,21 @@
       ctx.closePath();
     }
 
+    function addSoftGrain(ctx) {
+      const grain = ctx.createImageData(W, H);
+      const data = grain.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const value = Math.random() * 10;
+        data[i] = value;
+        data[i + 1] = value;
+        data[i + 2] = value;
+        data[i + 3] = 10;
+      }
+
+      ctx.putImageData(grain, 0, 0);
+    }
+
     async function generate() {
       const files = Array.from(document.getElementById("tweetInput").files);
       const resultados = document.getElementById("resultados");
@@ -179,28 +194,38 @@
         ctx.drawImage(bg, 0, 0, W, H);
 
         let tweetWidth;
+        const proporcao = tweet.height / tweet.width;
 
-const proporcao = tweet.height / tweet.width;
+        if (proporcao < 0.75) {
+          tweetWidth = 1000;
+        } else if (proporcao < 1.3) {
+          tweetWidth = 960;
+        } else if (proporcao < 2.2) {
+          tweetWidth = 910;
+        } else {
+          tweetWidth = 850;
+        }
 
-if (proporcao < 0.9) {
-  tweetWidth = 980;
-} else if (proporcao < 1.8) {
-  tweetWidth = 970;
-} else {
-  tweetWidth = 930;
-}
+        const scale = tweetWidth / tweet.width;
+        const tweetHeight = tweet.height * scale;
 
-const scale = tweetWidth / tweet.width;
-const tweetHeight = tweet.height * scale;
+        const x = (W - tweetWidth) / 2;
 
-const x = (W - tweetWidth) / 2;
-const y = (H - tweetHeight) / 2;
+        let y = (H - tweetHeight) / 2;
+
+        if (proporcao < 0.75) {
+          y = (H - tweetHeight) * 0.43;
+        } else if (proporcao < 1.3) {
+          y = (H - tweetHeight) * 0.46;
+        } else {
+          y = (H - tweetHeight) / 2;
+        }
 
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.15)";
-        ctx.shadowBlur = 30;
+        ctx.shadowColor = "rgba(0,0,0,0.12)";
+        ctx.shadowBlur = 40;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 10;
+        ctx.shadowOffsetY = 16;
 
         ctx.fillStyle = "white";
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
@@ -211,7 +236,15 @@ const y = (H - tweetHeight) / 2;
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, 38);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.7)";
+        ctx.lineWidth = 2;
+        roundedClip(ctx, x + 1, y + 1, tweetWidth - 2, tweetHeight - 2, 38);
+        ctx.stroke();
+
         ctx.restore();
+
+        addSoftGrain(ctx);
 
         const dataUrl = canvas.toDataURL("image/png");
         imagensGeradas.push(dataUrl);
