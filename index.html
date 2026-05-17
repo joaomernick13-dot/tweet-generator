@@ -178,7 +178,7 @@
 
       let bg;
       try {
-        bg = await loadImage("background.jpg?v=4");
+        bg = await loadImage("background.jpg?v=5");
       } catch (error) {
         alert("Não consegui carregar o fundo background.jpg.");
         return;
@@ -218,11 +218,10 @@
         const radius = Math.min(38, tweetWidth * 0.045);
 
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.12)";
-        ctx.shadowBlur = 18;
+        ctx.shadowColor = "rgba(0,0,0,0.24)";
+        ctx.shadowBlur = 38;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 6;
-
+        ctx.shadowOffsetY = 18;
         ctx.fillStyle = "white";
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.fill();
@@ -232,12 +231,6 @@
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
-
-        ctx.strokeStyle = "rgba(255,255,255,0.7)";
-        ctx.lineWidth = 2;
-        roundedClip(ctx, x + 1, y + 1, tweetWidth - 2, tweetHeight - 2, radius);
-        ctx.stroke();
-
         ctx.restore();
 
         const dataUrl = canvas.toDataURL("image/png");
