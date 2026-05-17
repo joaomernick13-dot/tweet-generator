@@ -165,7 +165,7 @@
         return;
       }
 
-      const bg = await loadImage("background.jpg?v=1");
+      const bg = await loadImage("background.jpg?v=2");
 
       for (let i = 0; i < files.length; i++) {
         const tweet = await loadFile(files[i]);
@@ -185,12 +185,12 @@
 
         if (proporcao > 2.2) {
           maxWidth = 1060;
-          maxHeight = 1220;
+          maxHeight = 1280;
         } else if (proporcao > 1.5) {
-          maxWidth = 990;
-          maxHeight = 1080;
+          maxWidth = 1040;
+          maxHeight = 1180;
         } else {
-          maxWidth = 930;
+          maxWidth = 960;
           maxHeight = 980;
         }
 
@@ -203,7 +203,7 @@
         const tweetHeight = tweet.height * scale;
 
         const x = (W - tweetWidth) / 2;
-        const y = (H - tweetHeight) / 2 - 85;
+        const y = (H - tweetHeight) / 2;
 
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.12)";
