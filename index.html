@@ -178,24 +178,19 @@
 
         ctx.drawImage(bg, 0, 0, W, H);
 
-        let tweetWidth;
-        const proporcao = tweet.height / tweet.width;
+        const maxWidth = 960;
+        const maxHeight = 980;
 
-        if (proporcao < 0.75) {
-          tweetWidth = 1000;
-        } else if (proporcao < 1.3) {
-          tweetWidth = 940;
-        } else if (proporcao < 2.0) {
-          tweetWidth = 860;
-        } else {
-          tweetWidth = 780;
-        }
+        const scale = Math.min(
+          maxWidth / tweet.width,
+          maxHeight / tweet.height
+        );
 
-        const scale = tweetWidth / tweet.width;
+        const tweetWidth = tweet.width * scale;
         const tweetHeight = tweet.height * scale;
 
         const x = (W - tweetWidth) / 2;
-        const y = (H - tweetHeight) / 2 - 40;
+        const y = (H - tweetHeight) / 2;
 
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.12)";
