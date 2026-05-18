@@ -209,10 +209,10 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.44);
-      const scanY = Math.round(y + Math.max(6, height * 0.012));
-      const scanW = Math.round(width * 0.54);
-      const scanH = Math.round(Math.min(height * 0.16, width * 0.16, 128));
+      const scanX = Math.round(x + width * 0.40);
+      const scanY = Math.round(y + Math.max(5, height * 0.010));
+      const scanW = Math.round(width * 0.58);
+      const scanH = Math.round(Math.min(height * 0.17, width * 0.17, 136));
 
       let imageData;
       try {
@@ -230,7 +230,7 @@
         const b = data[idx + 2];
         const a = data[idx + 3];
         const brightness = (r + g + b) / 3;
-        return a > 80 && brightness < 175 && r < 205 && g < 205 && b < 205;
+        return a > 80 && brightness < 182 && r < 212 && g < 212 && b < 212;
       };
 
       for (let py = 0; py < scanH; py++) {
@@ -240,8 +240,8 @@
       }
 
       const activeCols = [];
-      for (let px = Math.round(scanW * 0.30); px < scanW; px++) {
-        if (colCounts[px] >= 2) activeCols.push(px);
+      for (let px = Math.round(scanW * 0.22); px < scanW; px++) {
+        if (colCounts[px] >= 1) activeCols.push(px);
       }
 
       if (!activeCols.length) return;
@@ -252,7 +252,7 @@
 
       for (let i = 1; i < activeCols.length; i++) {
         const col = activeCols[i];
-        if (col - prev > 14) {
+        if (col - prev > 20) {
           groups.push([start, prev]);
           start = col;
         }
@@ -282,8 +282,8 @@
         }
 
         const gHeight = maxY - minY + 1;
-        const isRightSide = gCenter > scanW * 0.48 || gMax > scanW * 0.72;
-        const looksLikeCornerItem = pixels >= 8 && gWidth <= scanW * 0.42 && gHeight <= scanH * 0.85;
+        const isRightSide = gCenter > scanW * 0.40 || gMax > scanW * 0.66;
+        const looksLikeCornerItem = pixels >= 6 && gWidth <= scanW * 0.55 && gHeight <= scanH * 0.90;
 
         if (isRightSide && looksLikeCornerItem) {
           if (!best || gMax > best.gMax) {
@@ -294,18 +294,18 @@
 
       if (!best) return;
 
-      const padX = Math.max(52, width * 0.065);
-      const padY = Math.max(16, width * 0.02);
+      const padX = Math.max(64, width * 0.08);
+      const padY = Math.max(18, width * 0.022);
 
       let patchX = scanX + best.gMin - padX;
       let patchY = scanY + best.minY - padY;
       let patchW = (scanX + best.gMax + padX) - patchX;
       let patchH = (best.maxY - best.minY + 1) + padY * 2;
 
-      patchX = Math.max(x + width * 0.46, patchX);
-      patchY = Math.max(y + 3, patchY);
-      patchW = Math.min(patchW, x + width - 6 - patchX);
-      patchH = Math.min(patchH, Math.min(height * 0.16, width * 0.16, 125));
+      patchX = Math.max(x + width * 0.40, patchX);
+      patchY = Math.max(y + 2, patchY);
+      patchW = Math.min(patchW, x + width - 5 - patchX);
+      patchH = Math.min(patchH, Math.min(height * 0.17, width * 0.17, 132));
 
       if (patchW < 10 || patchH < 8) return;
 
