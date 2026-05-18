@@ -209,10 +209,10 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.50);
-      const scanY = Math.round(y + Math.max(8, height * 0.018));
-      const scanW = Math.round(width * 0.48);
-      const scanH = Math.round(Math.min(height * 0.13, width * 0.14, 112));
+      const scanX = Math.round(x + width * 0.44);
+      const scanY = Math.round(y + Math.max(6, height * 0.012));
+      const scanW = Math.round(width * 0.54);
+      const scanH = Math.round(Math.min(height * 0.16, width * 0.16, 128));
 
       let imageData;
       try {
@@ -222,58 +222,92 @@
       }
 
       const data = imageData.data;
-      let minX = scanW;
-      let minY = scanH;
-      let maxX = 0;
-      let maxY = 0;
-      let darkCount = 0;
+      const colCounts = new Array(scanW).fill(0);
+      const isDark = (px, py) => {
+        const idx = (py * scanW + px) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const a = data[idx + 3];
+        const brightness = (r + g + b) / 3;
+        return a > 80 && brightness < 175 && r < 205 && g < 205 && b < 205;
+      };
 
       for (let py = 0; py < scanH; py++) {
         for (let px = 0; px < scanW; px++) {
-          const idx = (py * scanW + px) * 4;
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-          const a = data[idx + 3];
-          const brightness = (r + g + b) / 3;
+          if (isDark(px, py)) colCounts[px]++;
+        }
+      }
 
-          if (a > 80 && brightness < 165 && r < 190 && g < 190 && b < 190) {
-            darkCount++;
-            minX = Math.min(minX, px);
-            minY = Math.min(minY, py);
-            maxX = Math.max(maxX, px);
-            maxY = Math.max(maxY, py);
+      const activeCols = [];
+      for (let px = Math.round(scanW * 0.30); px < scanW; px++) {
+        if (colCounts[px] >= 2) activeCols.push(px);
+      }
+
+      if (!activeCols.length) return;
+
+      const groups = [];
+      let start = activeCols[0];
+      let prev = activeCols[0];
+
+      for (let i = 1; i < activeCols.length; i++) {
+        const col = activeCols[i];
+        if (col - prev > 14) {
+          groups.push([start, prev]);
+          start = col;
+        }
+        prev = col;
+      }
+      groups.push([start, prev]);
+
+      let best = null;
+
+      for (const group of groups) {
+        const gMin = group[0];
+        const gMax = group[1];
+        const gWidth = gMax - gMin + 1;
+        const gCenter = (gMin + gMax) / 2;
+        let pixels = 0;
+        let minY = scanH;
+        let maxY = 0;
+
+        for (let py = 0; py < scanH; py++) {
+          for (let px = gMin; px <= gMax; px++) {
+            if (isDark(px, py)) {
+              pixels++;
+              minY = Math.min(minY, py);
+              maxY = Math.max(maxY, py);
+            }
+          }
+        }
+
+        const gHeight = maxY - minY + 1;
+        const isRightSide = gCenter > scanW * 0.48 || gMax > scanW * 0.72;
+        const looksLikeCornerItem = pixels >= 8 && gWidth <= scanW * 0.42 && gHeight <= scanH * 0.85;
+
+        if (isRightSide && looksLikeCornerItem) {
+          if (!best || gMax > best.gMax) {
+            best = { gMin, gMax, minY, maxY };
           }
         }
       }
 
-      if (darkCount < 12) return;
+      if (!best) return;
 
-      const detectedW = maxX - minX;
-      const detectedH = maxY - minY;
+      const padX = Math.max(52, width * 0.065);
+      const padY = Math.max(16, width * 0.02);
 
-      if (detectedW < 6 || detectedH < 4) return;
+      let patchX = scanX + best.gMin - padX;
+      let patchY = scanY + best.minY - padY;
+      let patchW = (scanX + best.gMax + padX) - patchX;
+      let patchH = (best.maxY - best.minY + 1) + padY * 2;
 
-      const padX = Math.max(55, width * 0.07);
-      const padY = Math.max(14, width * 0.018);
+      patchX = Math.max(x + width * 0.46, patchX);
+      patchY = Math.max(y + 3, patchY);
+      patchW = Math.min(patchW, x + width - 6 - patchX);
+      patchH = Math.min(patchH, Math.min(height * 0.16, width * 0.16, 125));
 
-      let patchX = scanX + minX - padX;
-      let patchY = scanY + minY - padY;
-      let patchW = detectedW + padX * 2;
-      let patchH = detectedH + padY * 2;
-
-      const maxPatchW = width * 0.44;
-      const maxPatchH = Math.min(height * 0.135, width * 0.145, 105);
-
-      patchW = Math.min(patchW, maxPatchW);
-      patchH = Math.min(patchH, maxPatchH);
-
-      patchX = Math.max(x + width * 0.50, patchX);
-      patchY = Math.max(y + 4, patchY);
-
-      if (patchX + patchW > x + width - 8) {
-        patchW = x + width - 8 - patchX;
-      }
+      if (patchW < 10 || patchH < 8) return;
 
       ctx.save();
       ctx.fillStyle = "white";
