@@ -34,15 +34,42 @@
       opacity: 0.9;
     }
 
-    input[type="file"] {
+    #tweetInput {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .file-box {
       width: 100%;
       max-width: 360px;
+      min-height: 52px;
       background: white;
       color: #111;
-      padding: 14px;
+      padding: 11px 14px;
       border-radius: 14px;
-      margin: 14px 0;
+      margin: 14px auto;
       font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .file-button {
+      background: #eee;
+      border-radius: 999px;
+      padding: 6px 14px;
+      white-space: nowrap;
+    }
+
+    .file-status {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     button {
@@ -55,6 +82,30 @@
       cursor: pointer;
       background: white;
       color: #0077ff;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 12px auto 4px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .option input {
+      width: 18px;
+      height: 18px;
+      accent-color: #0077ff;
+    }
+
+    .option-help {
+      font-size: 12px;
+      line-height: 1.35;
+      opacity: 0.65;
+      margin: 4px auto 6px;
+      max-width: 330px;
     }
 
     .dica {
@@ -105,6 +156,19 @@
     <p>Envie um ou vários prints de tweets:</p>
 
     <input type="file" id="tweetInput" accept="image/*" multiple>
+    <label class="file-box" for="tweetInput">
+      <span class="file-button">Choose Files</span>
+      <span id="fileStatus" class="file-status">Nenhuma foto selecionada</span>
+    </label>
+
+    <label class="option">
+      <input type="checkbox" id="hideTopRight" checked>
+      Remover x.com automaticamente
+    </label>
+
+    <p class="option-help">
+      Tenta detectar e ocultar texto escuro no canto superior direito. Desative se algo importante aparecer ali.
+    </p>
 
     <br>
 
@@ -122,6 +186,16 @@
     const W = 1080;
     const H = 1350;
     let imagensGeradas = [];
+
+    const input = document.getElementById("tweetInput");
+    const fileStatus = document.getElementById("fileStatus");
+
+    input.addEventListener("change", () => {
+      const total = input.files.length;
+      if (!total) fileStatus.textContent = "Nenhuma foto selecionada";
+      else if (total === 1) fileStatus.textContent = "1 foto";
+      else fileStatus.textContent = `${total} fotos`;
+    });
 
     function loadImage(src) {
       return new Promise((resolve, reject) => {
@@ -164,9 +238,126 @@
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
     }
 
+    function fillRounded(ctx, x, y, width, height, radius) {
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius);
+        ctx.fill();
+      } else {
+        roundedClip(ctx, x, y, width, height, radius);
+        ctx.fill();
+      }
+    }
+
+    function hideTweetTopRightAuto(ctx, x, y, width, height) {
+      const scanX = Math.round(x + width * 0.72);
+      const scanY = Math.round(y + Math.max(5, height * 0.010));
+      const scanW = Math.round(width * 0.26);
+      const scanH = Math.round(Math.min(height * 0.17, width * 0.17, 136));
+
+      let imageData;
+      try {
+        imageData = ctx.getImageData(scanX, scanY, scanW, scanH);
+      } catch (error) {
+        return;
+      }
+
+      const data = imageData.data;
+      const colCounts = new Array(scanW).fill(0);
+      const isDark = (px, py) => {
+        const idx = (py * scanW + px) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const a = data[idx + 3];
+        const brightness = (r + g + b) / 3;
+        return a > 80 && brightness < 182 && r < 212 && g < 212 && b < 212;
+      };
+
+      for (let py = 0; py < scanH; py++) {
+        for (let px = 0; px < scanW; px++) {
+          if (isDark(px, py)) colCounts[px]++;
+        }
+      }
+
+      const activeCols = [];
+      for (let px = 0; px < scanW; px++) {
+        if (colCounts[px] >= 1) activeCols.push(px);
+      }
+
+      if (!activeCols.length) return;
+
+      const groups = [];
+      let start = activeCols[0];
+      let prev = activeCols[0];
+
+      for (let i = 1; i < activeCols.length; i++) {
+        const col = activeCols[i];
+        if (col - prev > 20) {
+          groups.push([start, prev]);
+          start = col;
+        }
+        prev = col;
+      }
+      groups.push([start, prev]);
+
+      let best = null;
+
+      for (const group of groups) {
+        const gMin = group[0];
+        const gMax = group[1];
+        const gWidth = gMax - gMin + 1;
+        let pixels = 0;
+        let minY = scanH;
+        let maxY = 0;
+
+        for (let py = 0; py < scanH; py++) {
+          for (let px = gMin; px <= gMax; px++) {
+            if (isDark(px, py)) {
+              pixels++;
+              minY = Math.min(minY, py);
+              maxY = Math.max(maxY, py);
+            }
+          }
+        }
+
+        const gHeight = maxY - minY + 1;
+        const looksLikeCornerItem = pixels >= 4 && gWidth <= scanW * 0.96 && gHeight <= scanH * 0.92;
+
+        if (looksLikeCornerItem) {
+          if (!best || gMax > best.gMax) {
+            best = { gMin, gMax, minY, maxY };
+          }
+        }
+      }
+
+      if (!best) return;
+
+      const padX = Math.max(42, width * 0.052);
+      const padY = Math.max(16, width * 0.02);
+
+      let patchX = scanX + best.gMin - padX;
+      let patchY = scanY + best.minY - padY;
+      let patchW = (scanX + best.gMax + padX) - patchX;
+      let patchH = (best.maxY - best.minY + 1) + padY * 2;
+
+      patchX = Math.max(x + width * 0.70, patchX);
+      patchY = Math.max(y + 2, patchY);
+      patchW = Math.min(patchW, x + width - 5 - patchX);
+      patchH = Math.min(patchH, Math.min(height * 0.17, width * 0.17, 132));
+
+      if (patchW < 10 || patchH < 8) return;
+
+      ctx.save();
+      ctx.fillStyle = "white";
+      fillRounded(ctx, patchX, patchY, patchW, patchH, 12);
+      ctx.restore();
+    }
+
     async function generate() {
       const files = Array.from(document.getElementById("tweetInput").files);
       const resultados = document.getElementById("resultados");
+      const hideTopRight = document.getElementById("hideTopRight").checked;
 
       resultados.innerHTML = "";
       imagensGeradas = [];
@@ -231,6 +422,11 @@
         roundedClip(ctx, x, y, tweetWidth, tweetHeight, radius);
         ctx.clip();
         ctx.drawImage(tweet, x, y, tweetWidth, tweetHeight);
+
+        if (hideTopRight) {
+          hideTweetTopRightAuto(ctx, x, y, tweetWidth, tweetHeight);
+        }
+
         ctx.restore();
 
         const dataUrl = canvas.toDataURL("image/png");
