@@ -209,9 +209,9 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.54);
+      const scanX = Math.round(x + width * 0.72);
       const scanY = Math.round(y + Math.max(5, height * 0.010));
-      const scanW = Math.round(width * 0.44);
+      const scanW = Math.round(width * 0.26);
       const scanH = Math.round(Math.min(height * 0.17, width * 0.17, 136));
 
       let imageData;
@@ -240,7 +240,7 @@
       }
 
       const activeCols = [];
-      for (let px = Math.round(scanW * 0.28); px < scanW; px++) {
+      for (let px = 0; px < scanW; px++) {
         if (colCounts[px] >= 1) activeCols.push(px);
       }
 
@@ -266,7 +266,6 @@
         const gMin = group[0];
         const gMax = group[1];
         const gWidth = gMax - gMin + 1;
-        const gCenter = (gMin + gMax) / 2;
         let pixels = 0;
         let minY = scanH;
         let maxY = 0;
@@ -282,10 +281,9 @@
         }
 
         const gHeight = maxY - minY + 1;
-        const isRightSide = gCenter > scanW * 0.48 || gMax > scanW * 0.72;
-        const looksLikeCornerItem = pixels >= 6 && gWidth <= scanW * 0.58 && gHeight <= scanH * 0.90;
+        const looksLikeCornerItem = pixels >= 4 && gWidth <= scanW * 0.96 && gHeight <= scanH * 0.92;
 
-        if (isRightSide && looksLikeCornerItem) {
+        if (looksLikeCornerItem) {
           if (!best || gMax > best.gMax) {
             best = { gMin, gMax, minY, maxY };
           }
@@ -294,15 +292,15 @@
 
       if (!best) return;
 
-      const padX = Math.max(64, width * 0.08);
-      const padY = Math.max(18, width * 0.022);
+      const padX = Math.max(42, width * 0.052);
+      const padY = Math.max(16, width * 0.02);
 
       let patchX = scanX + best.gMin - padX;
       let patchY = scanY + best.minY - padY;
       let patchW = (scanX + best.gMax + padX) - patchX;
       let patchH = (best.maxY - best.minY + 1) + padY * 2;
 
-      patchX = Math.max(x + width * 0.58, patchX);
+      patchX = Math.max(x + width * 0.70, patchX);
       patchY = Math.max(y + 2, patchY);
       patchW = Math.min(patchW, x + width - 5 - patchX);
       patchH = Math.min(patchH, Math.min(height * 0.17, width * 0.17, 132));
