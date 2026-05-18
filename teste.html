@@ -209,10 +209,10 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.60);
+      const scanX = Math.round(x + width * 0.56);
       const scanY = Math.round(y + Math.max(8, height * 0.018));
-      const scanW = Math.round(width * 0.38);
-      const scanH = Math.round(Math.min(height * 0.12, width * 0.13, 105));
+      const scanW = Math.round(width * 0.42);
+      const scanH = Math.round(Math.min(height * 0.13, width * 0.14, 112));
 
       let imageData;
       try {
@@ -237,7 +237,7 @@
           const a = data[idx + 3];
           const brightness = (r + g + b) / 3;
 
-          if (a > 80 && brightness < 150 && r < 180 && g < 180 && b < 180) {
+          if (a > 80 && brightness < 165 && r < 190 && g < 190 && b < 190) {
             darkCount++;
             minX = Math.min(minX, px);
             minY = Math.min(minY, py);
@@ -247,28 +247,28 @@
         }
       }
 
-      if (darkCount < 18) return;
+      if (darkCount < 12) return;
 
       const detectedW = maxX - minX;
       const detectedH = maxY - minY;
 
-      if (detectedW < 8 || detectedH < 5) return;
+      if (detectedW < 6 || detectedH < 4) return;
 
-      const padX = Math.max(28, width * 0.035);
-      const padY = Math.max(12, width * 0.015);
+      const padX = Math.max(40, width * 0.052);
+      const padY = Math.max(14, width * 0.018);
 
       let patchX = scanX + minX - padX;
       let patchY = scanY + minY - padY;
       let patchW = detectedW + padX * 2;
       let patchH = detectedH + padY * 2;
 
-      const maxPatchW = width * 0.36;
-      const maxPatchH = Math.min(height * 0.12, width * 0.13, 95);
+      const maxPatchW = width * 0.44;
+      const maxPatchH = Math.min(height * 0.135, width * 0.145, 105);
 
       patchW = Math.min(patchW, maxPatchW);
       patchH = Math.min(patchH, maxPatchH);
 
-      patchX = Math.max(x + width * 0.64, patchX);
+      patchX = Math.max(x + width * 0.56, patchX);
       patchY = Math.max(y + 4, patchY);
 
       if (patchX + patchW > x + width - 8) {
