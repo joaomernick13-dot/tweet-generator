@@ -209,9 +209,9 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.56);
+      const scanX = Math.round(x + width * 0.50);
       const scanY = Math.round(y + Math.max(8, height * 0.018));
-      const scanW = Math.round(width * 0.42);
+      const scanW = Math.round(width * 0.48);
       const scanH = Math.round(Math.min(height * 0.13, width * 0.14, 112));
 
       let imageData;
@@ -254,7 +254,7 @@
 
       if (detectedW < 6 || detectedH < 4) return;
 
-      const padX = Math.max(40, width * 0.052);
+      const padX = Math.max(55, width * 0.07);
       const padY = Math.max(14, width * 0.018);
 
       let patchX = scanX + minX - padX;
@@ -268,7 +268,7 @@
       patchW = Math.min(patchW, maxPatchW);
       patchH = Math.min(patchH, maxPatchH);
 
-      patchX = Math.max(x + width * 0.56, patchX);
+      patchX = Math.max(x + width * 0.50, patchX);
       patchY = Math.max(y + 4, patchY);
 
       if (patchX + patchW > x + width - 8) {
