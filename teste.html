@@ -209,9 +209,9 @@
     }
 
     function hideTweetTopRightAuto(ctx, x, y, width, height) {
-      const scanX = Math.round(x + width * 0.40);
+      const scanX = Math.round(x + width * 0.54);
       const scanY = Math.round(y + Math.max(5, height * 0.010));
-      const scanW = Math.round(width * 0.58);
+      const scanW = Math.round(width * 0.44);
       const scanH = Math.round(Math.min(height * 0.17, width * 0.17, 136));
 
       let imageData;
@@ -240,7 +240,7 @@
       }
 
       const activeCols = [];
-      for (let px = Math.round(scanW * 0.22); px < scanW; px++) {
+      for (let px = Math.round(scanW * 0.28); px < scanW; px++) {
         if (colCounts[px] >= 1) activeCols.push(px);
       }
 
@@ -282,8 +282,8 @@
         }
 
         const gHeight = maxY - minY + 1;
-        const isRightSide = gCenter > scanW * 0.40 || gMax > scanW * 0.66;
-        const looksLikeCornerItem = pixels >= 6 && gWidth <= scanW * 0.55 && gHeight <= scanH * 0.90;
+        const isRightSide = gCenter > scanW * 0.48 || gMax > scanW * 0.72;
+        const looksLikeCornerItem = pixels >= 6 && gWidth <= scanW * 0.58 && gHeight <= scanH * 0.90;
 
         if (isRightSide && looksLikeCornerItem) {
           if (!best || gMax > best.gMax) {
@@ -302,7 +302,7 @@
       let patchW = (scanX + best.gMax + padX) - patchX;
       let patchH = (best.maxY - best.minY + 1) + padY * 2;
 
-      patchX = Math.max(x + width * 0.40, patchX);
+      patchX = Math.max(x + width * 0.58, patchX);
       patchY = Math.max(y + 2, patchY);
       patchW = Math.min(patchW, x + width - 5 - patchX);
       patchH = Math.min(patchH, Math.min(height * 0.17, width * 0.17, 132));
