@@ -84,6 +84,10 @@
       color: #0077ff;
     }
 
+    .clear-button {
+      color: #666;
+    }
+
     .option {
       display: flex;
       align-items: center;
@@ -106,6 +110,15 @@
       opacity: 0.65;
       margin: 4px auto 6px;
       max-width: 330px;
+    }
+
+    .status-message {
+      min-height: 20px;
+      font-size: 14px;
+      line-height: 1.35;
+      opacity: 0.85;
+      margin: 10px auto 0;
+      max-width: 340px;
     }
 
     .dica {
@@ -163,7 +176,7 @@
 
     <label class="option">
       <input type="checkbox" id="hideTopRight" checked>
-      Remover x.com automaticamente
+      Remover marca do X
     </label>
 
     <p class="option-help">
@@ -174,6 +187,9 @@
 
     <button onclick="generate()">Gerar imagens</button>
     <button onclick="downloadAll()">Baixar todas</button>
+    <button class="clear-button" onclick="clearAll()">Limpar tudo</button>
+
+    <p id="statusMessage" class="status-message"></p>
 
     <p class="dica">
       No iPhone: toque e segure em uma imagem gerada para salvar no rolo da câmera.
@@ -189,12 +205,14 @@
 
     const input = document.getElementById("tweetInput");
     const fileStatus = document.getElementById("fileStatus");
+    const statusMessage = document.getElementById("statusMessage");
 
     input.addEventListener("change", () => {
       const total = input.files.length;
       if (!total) fileStatus.textContent = "Nenhuma foto selecionada";
       else if (total === 1) fileStatus.textContent = "1 foto";
       else fileStatus.textContent = `${total} fotos`;
+      statusMessage.textContent = "";
     });
 
     function loadImage(src) {
@@ -355,12 +373,13 @@
     }
 
     async function generate() {
-      const files = Array.from(document.getElementById("tweetInput").files);
+      const files = Array.from(input.files);
       const resultados = document.getElementById("resultados");
       const hideTopRight = document.getElementById("hideTopRight").checked;
 
       resultados.innerHTML = "";
       imagensGeradas = [];
+      statusMessage.textContent = "";
 
       if (!files.length) {
         alert("Envie pelo menos um print de tweet.");
@@ -438,6 +457,10 @@
         img.alt = "Imagem gerada";
         resultados.appendChild(img);
       }
+
+      statusMessage.textContent = imagensGeradas.length === 1
+        ? "1 imagem gerada com sucesso ✨"
+        : `${imagensGeradas.length} imagens geradas com sucesso ✨`;
     }
 
     function downloadAll() {
@@ -452,6 +475,14 @@
         link.download = `gerador-de-tweet-${index + 1}.png`;
         link.click();
       });
+    }
+
+    function clearAll() {
+      input.value = "";
+      fileStatus.textContent = "Nenhuma foto selecionada";
+      statusMessage.textContent = "";
+      imagensGeradas = [];
+      document.getElementById("resultados").innerHTML = "";
     }
   </script>
 </body>
